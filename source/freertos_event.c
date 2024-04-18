@@ -32,6 +32,10 @@
  ******************************************************************************/
 static void write_task_1(void *pvParameters);
 static void write_task_2(void *pvParameters);
+static void write_task_3(void *pvParameters);
+static void write_task_4(void *pvParameters);
+static void write_task_5(void *pvParameters);
+
 static void read_task(void *pvParameters);
 /*******************************************************************************
  * Globals
@@ -64,6 +68,27 @@ int main(void)
         while (1)
             ;
     }
+        if (xTaskCreate(write_task_3, "WRITE_TASK_3", configMINIMAL_STACK_SIZE + 100, NULL, tskIDLE_PRIORITY + 1, NULL) !=
+        pdPASS)
+    {
+        PRINTF("Task creation failed!.\r\n");
+        while (1)
+            ;
+    }
+        if (xTaskCreate(write_task_4, "WRITE_TASK_4", configMINIMAL_STACK_SIZE + 100, NULL, tskIDLE_PRIORITY + 1, NULL) !=
+        pdPASS)
+    {
+        PRINTF("Task creation failed!.\r\n");
+        while (1)
+            ;
+    }
+        if (xTaskCreate(write_task_5, "WRITE_TASK_5", configMINIMAL_STACK_SIZE + 100, NULL, tskIDLE_PRIORITY + 1, NULL) !=
+        pdPASS)
+    {
+        PRINTF("Task creation failed!.\r\n");
+        while (1)
+            ;
+    }
     if (xTaskCreate(read_task, "READ_TASK", configMINIMAL_STACK_SIZE + 100, NULL, tskIDLE_PRIORITY + 2, NULL) != pdPASS)
     {
         PRINTF("Task creation failed!.\r\n");
@@ -84,6 +109,7 @@ static void write_task_1(void *pvParameters)
     while (1)
     {
         xEventGroupSetBits(event_group, B0);
+        taskYIELD();
     }
 }
 
@@ -95,6 +121,43 @@ static void write_task_2(void *pvParameters)
     while (1)
     {
         xEventGroupSetBits(event_group, B1);
+        taskYIELD();
+    }
+}
+
+/*!
+ * @brief write_task_3 function
+ */
+static void write_task_3(void *pvParameters)
+{
+    while (1)
+    {
+        xEventGroupSetBits(event_group, 0b100);
+        taskYIELD();
+    }
+}
+
+/*!
+ * @brief write_task_4 function
+ */
+static void write_task_4(void *pvParameters)
+{
+    while (1)
+    {
+        xEventGroupSetBits(event_group, 0b1000);
+        taskYIELD();
+    }
+}
+
+/*!
+ * @brief write_task_5 function
+ */
+static void write_task_5(void *pvParameters)
+{
+    while (1)
+    {
+        xEventGroupSetBits(event_group, 0b10000);
+        taskYIELD();
     }
 }
 
@@ -107,14 +170,14 @@ static void read_task(void *pvParameters)
     while (1)
     {
         event_bits = xEventGroupWaitBits(event_group,    /* The event group handle. */
-                                         B0 | B1,        /* The bit pattern the event group is waiting for. */
+                                         B0 | B1 | 0b10000 | 0b1000 | 0b100, /* The bit pattern the event group is waiting for. */
                                          pdTRUE,         /* B0 and B1 will be cleared automatically. */
-                                         pdFALSE,        /* Don't wait for both bits, either bit unblock task. */
+                                         pdTRUE,        /* Don't wait for both bits, either bit unblock task. */
                                          portMAX_DELAY); /* Block indefinitely to wait for the condition to be met. */
 
-        if ((event_bits & (B0 | B1)) == (B0 | B1))
+        if ((event_bits & (B0 | B1 | 0b10000 | 0b1000 | 0b100)) == (B0 | B1 | 0b10000 | 0b1000 | 0b100))
         {
-            PRINTF("Both bits are set.");
+            PRINTF("All bits are set.\r\n");
         }
         else if ((event_bits & B0) == B0)
         {
@@ -123,6 +186,18 @@ static void read_task(void *pvParameters)
         else if ((event_bits & B1) == B1)
         {
             PRINTF("Bit B1 is set.\r\n");
+        }
+        else if ((event_bits & 0b100) == 0b100)
+        {
+            PRINTF("Bit B2 is set.\r\n");
+        }
+        else if ((event_bits & 0b1000) == 0b1000)
+        {
+            PRINTF("Bit B3 is set.\r\n");
+        }
+        else if ((event_bits & 0b10000) == 0b10000)
+        {
+            PRINTF("Bit B4 is set.\r\n");
         }
     }
 }
